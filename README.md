@@ -1,85 +1,47 @@
+# German-to-French Translation with Fine-Tuned LLMs
+
 ## Project Overview
 
-This project demonstrates how to adapt a general-purpose large language model (LLM) for specialized German-to-French translation tasks. By leveraging parameter-efficient fine-tuning techniques, I transformed Microsoft's Phi-2 model (2.78B parameters) into an effective translation system while working within the constraints of free-tier Google Colab resources.
+This project demonstrates how I adapted Microsoft's Phi-2 model (2.78B parameters) to specialize in German-to-French translation using a carefully selected subset of data and parameter-efficient fine-tuning techniques - all within the constraints of free-tier Google Colab.
 
-## Methodology
+## Dataset Strategy
 
-### Model Selection Process
+From the original "German-French website parallel corpus from the Federal Foreign Office Berlin" containing 11,852 translation pairs, I:
 
-After initial experiments with GPT-2 XL showed limited success due to its English-centric training, I selected Microsoft's Phi-2 model because of its:
-- Strong multilingual capabilities
-- 2.78 billion parameters (exceeding the 1B requirement)
-- Better language detection performance compared to similar-sized models
+1. **Selected a Representative Subset**:
+   - Chose 1,000 high-quality translation pairs through random sampling
+   - Ensured balanced representation across different content types
 
-### Dataset Strategy
+2. **Data Partitioning**:
+   - Split the 1,000 pairs into:
+     - 800 samples for training (80%)
+     - 200 samples for testing (20%)
+   - Maintained proportional representation in both sets
 
-I employed a two-phase data approach:
+3. **Data Processing**:
+   - Parsed TMX files using BeautifulSoup
+   - Validated language pairs
+   - Stored processed data in JSON format (dataset_a_train.json and dataset_a_test.json)
 
-1. **Primary Dataset**: 
-   - 11,852 verified German-French translation pairs from the Federal Foreign Office Berlin
-   - News-oriented content from 2013-2015
-   - Split into 80% training and 20% testing sets
+## Key Advantages of This Approach
 
-2. **Synthetic Augmentation**:
-   - Generated additional training pairs using Meta's Llama 3.3 (70B parameters)
-   - Carefully filtered for duplicates and inconsistencies
-   - Combined with original data to create an enhanced training set
+1. **Resource Efficiency**:
+   - Enabled faster iteration cycles within Colab's free-tier limitations
+   - Reduced GPU memory requirements during training
 
-### Efficient Fine-Tuning Approach
+2. **Quality Control**:
+   - Smaller dataset allowed for thorough manual inspection of samples
+   - Easier to identify and remove potential anomalies
 
-To overcome computational limitations, I implemented:
+3. **Experimental Flexibility**:
+   - Faster training cycles enabled more hyperparameter testing
+   - Simplified combination with synthetic data later in the project
 
-1. **PEFT with LoRA**:
-   - Rank (r) = 32 for feature capture
-   - Alpha = 64 for adaptation scaling
-   - Dropout = 0.1 for regularization
+## Impact on Model Performance
 
-2. **Memory Optimization**:
-   - 8-bit quantization to reduce GPU memory usage
-   - Progressive rank reduction (r=32 → r=8) when combining datasets
+Despite the smaller dataset size:
+- Achieved meaningful improvements over baseline (BLEU +0.81)
+- Demonstrated that quality fine-tuning can be achieved with carefully selected subsets
+- The 80/20 split proved sufficient for both training and reliable evaluation
 
-3. **Training Protocol**:
-   - 3-5 epochs per model variant
-   - Batch size optimized for Colab's free-tier GPUs
-
-## Results and Analysis
-
-The fine-tuned models showed consistent improvement:
-
-1. **Quantitative Metrics**:
-   - Baseline (Model A): BLEU 10.29 | BERTScore 0.639
-   - Best Performance (Model C): BLEU 11.28 | BERTScore 0.711
-   - Combined Data (Model D): Maintained semantic quality (BERTScore 0.711) despite slight BLEU decrease
-
-2. **Key Findings**:
-   - LoRA fine-tuning provided 8.1% BLEU improvement over baseline
-   - Synthetic data enhanced model performance by 0.18 BLEU points
-   - Semantic coherence (BERTScore) remained stable across variations
-   - Resource constraints necessitated trade-offs between model capacity and data diversity
-
-## Technical Reflections
-
-1. **Challenges Encountered**:
-   - Colab resource limitations impacted training options
-   - Initial model selection required significant experimentation
-   - Synthetic data generation needed careful prompt engineering
-
-2. **Lessons Learned**:
-   - Smaller, well-tuned models can outperform larger generic ones
-   - Data quality matters more than quantity in translation tasks
-   - Parameter-efficient methods enable meaningful adaptation on limited hardware
-
-3. **Future Directions**:
-   - Experiment with more diverse training data domains
-   - Test alternative base models (e.g., Mistral 7B)
-   - Explore dynamic LoRA configuration strategies
-
-## Ethical Considerations
-
-This work acknowledges that:
-- Machine translation systems may inherit or amplify biases
-- Performance varies across language varieties and domains
-- Critical applications require human oversight
-- Low-resource languages need special consideration
-
-The project demonstrates how careful fine-tuning can adapt general LLMs for specific bilingual tasks while maintaining computational efficiency.
+This selective approach balanced computational constraints with model performance needs, proving particularly valuable when working with limited resources. The success with 1,000 pairs suggests the model could effectively learn translation patterns even from this reduced dataset.
